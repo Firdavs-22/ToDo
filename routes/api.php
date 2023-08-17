@@ -10,6 +10,9 @@ use App\Http\Controllers\ToDoController;
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/test', [ToDoController::class, 'test']);
     Route::post('/logout', [UserController::class, 'logout']);
+    Route::put('/user', [UserController::class, 'update']);
+    Route::delete('/user', [UserController::class, 'destroy']);
+    Route::get('/user', [UserController::class, 'show']);
     Route::resource('categories', CategoryController::class);
 });
 

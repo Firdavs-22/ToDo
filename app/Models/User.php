@@ -21,6 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'photo',
+        'status',
+        'language',
+        'theme',
     ];
 
     /**
@@ -42,4 +46,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public $timestamps = false;
 }
