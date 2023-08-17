@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 class CategoryController extends Controller
 {
@@ -12,7 +14,10 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return Category::all();
+        $categories = Category::where('user_id', Auth::id())
+            ->where('status', 1)
+            ->get();
+        return response()->json($categories);
     }
 
     /**
@@ -24,24 +29,32 @@ class CategoryController extends Controller
             'title' => 'required',
         ]);
 
-        $category = new Category();
-        $category->user_id = 1;
-        $category->status = 1;
-        $category->title = $request->get('title');
-        $category->theme = ($request->has('theme')) ?
-            $request->get('theme') : 0;
-        $category->color = ($request->has('color')) ?
-            $request->get('color') : '#888888';
-        $category->save();
-        return $category;
+        $category = Category::create([
+            'user_id' => Auth::id(),
+            'status' => 1,
+            'title' => $request->input('title'),
+            'theme' => $request->input('theme', 0),
+            'color' => $request->input('color', '#888888'),
+        ]);
+
+        return response()->json($category, Response::HTTP_CREATED);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        return Category::find($id);
+        $category = Category::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 1)
+            ->first();
+
+        if (!$category) {
+            return response()->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        return response()->json($category);
     }
 
     /**
@@ -49,8 +62,13 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
+        if ($category->user_id != Auth::id() || !$category->status) {
+            return response()->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+        }
+
         $category->update($request->all());
-        return $category;
+
+        return response()->json($category);
     }
 
     /**
@@ -58,6 +76,12 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        return $category->delete();
+        if ($category->user_id != Auth::id() || !$category->status) {
+            return response()->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $category->status = 0;
+        $category->update();
+        return response()->json(['message' => 'Category deleted']);
     }
 }
