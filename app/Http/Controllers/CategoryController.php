@@ -54,7 +54,7 @@ class CategoryController extends Controller
             return response()->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json($category);
+        return response()->json([$category]);
     }
 
     /**
