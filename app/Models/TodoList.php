@@ -17,6 +17,7 @@ class TodoList extends Model
         'created_date',
         'task_deadline',
         'completed',
+        'favorite',
         'status',
     ];
     protected $table = 'todo_list';

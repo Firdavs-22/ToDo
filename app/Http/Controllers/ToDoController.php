@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -64,6 +65,7 @@ class ToDoController extends Controller
             'task_priority' => $validatedData['priority'] ?? 2,
             'task_deadline' => $validatedData['deadline'] ?? null,
             'completed' => false,
+            'favorite' => false,
             'status' => 1,
             'created_date' => now()->format('Y-m-d'),
         ]);
@@ -134,7 +136,8 @@ class ToDoController extends Controller
             'description' => 'string',
             'priority' => 'integer',
             'deadline' => 'date',
-            'completed' => 'required|boolean'
+            'completed' => 'required|boolean',
+            'favorite' => 'required|boolean'
         ]);
 
         $todo->task_name = $validatedData['name'];
@@ -142,6 +145,7 @@ class ToDoController extends Controller
         $todo->task_priority = $validatedData['priority'] ?? 2;
         $todo->task_deadline = $validatedData['deadline'] ?? null;
         $todo->completed = $validatedData['completed'] ?? false;
+        $todo->favorite = $validatedData['favorite'] ?? false;
         $todo->save();
 
         return response()->json([
@@ -253,5 +257,91 @@ class ToDoController extends Controller
         $step->save();
 
         return response()->json(['message' => 'Step deleted successfully']);
+    }
+
+    public function favorite()
+    {
+        $list = TodoList::where('user_id', Auth::id())
+            ->where('favorite', true)
+            ->where('status', 1)
+            ->get();
+
+        return response()->json([
+            'favorite_list' => $list
+        ]);
+    }
+
+    public function complete(TodoList $todo)
+    {
+        if ($todo->user_id != Auth::id() || $todo->status == 0) {
+            return response()->json(['error' => 'ToDo not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $todo->completed = true;
+        $todo->save();
+
+        return response()->json([
+            'message' => 'ToDo completed successfully'
+        ]);
+    }
+
+    public function stepComplete(TodoStep $step)
+    {
+        if (!$step || $step->todo->user_id != Auth::id() || $step->todo->status == 0) {
+            return response()->json(['error' => 'Step not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $step->completed = true;
+        $step->save();
+
+        return response()->json([
+            'message' => 'Step completed successfully'
+        ]);
+    }
+
+    public function taskByDate()
+    {
+        $tasksByDeadline = TodoList::where('user_id', Auth::id())
+            ->where('status', 1)
+            ->whereNotNull('task_deadline')
+            ->orderBy('task_deadline')
+            ->get()
+            ->groupBy('task_deadline');
+
+        return response()->json([
+            'dates' => $tasksByDeadline
+        ]);
+    }
+
+    public function weeklyTasks()
+    {
+        $now = Carbon::now();
+
+        $thisWeekTasks = TodoList::where('user_id', Auth::id())
+            ->where('status', 1)
+            ->whereNotNull('task_deadline')
+            ->whereBetween('task_deadline', [$now->startOfWeek()->format('Y-m-d'), $now->endOfWeek()->format('Y-m-d')])
+            ->orderBy('task_deadline')
+            ->get()
+            ->groupBy('task_deadline');
+
+        return response()->json([
+            'weekly_tasks' => $thisWeekTasks
+        ]);
+    }
+
+    public function todayTasks()
+    {
+        $today_tasks = TodoList::where('user_id', Auth::id())
+            ->where('status', 1)
+            ->whereNotNull('task_deadline')
+            ->whereDate('task_deadline', now()->format('Y-m-d'))
+            ->orderBy('task_priority')
+            ->orderBy('created_date')
+            ->get();
+
+        return response()->json([
+            'today_tasks' => $today_tasks
+        ]);
     }
 }

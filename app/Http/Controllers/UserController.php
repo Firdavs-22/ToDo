@@ -68,18 +68,16 @@ class UserController extends Controller
             ->first();
         if (!$user || !Hash::check($fields['password'], $user->password)) {
             return response([
-                'message' => 'Bad creds'
+                'message' => 'Bad credentials'
             ], 401);
         }
 
         $token = $user->createToken('myapptoken')->plainTextToken;
 
-        $response = [
+        return response()->json([
             'user' => $user,
             'token' => $token
-        ];
-
-        return response($response, 201);
+        ], 201);
     }
 
     public function update(Request $request)
