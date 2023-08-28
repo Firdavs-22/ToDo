@@ -13,18 +13,20 @@ use App\Models\TodoStep;
 
 class ToDoController extends Controller
 {
-    public function index()
+    public function index($priority = null)
     {
         $list = TodoList::where('user_id', Auth::id())
             ->where('status', 1)
-            ->get();
+            ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
+                return $query->where('task_priority', $priority);
+            })->get();
 
         return response()->json([
             'todo_list' => $list
         ]);
     }
 
-    public function showCategory(int $category_id)
+    public function showCategory(int $category_id, $priority = null)
     {
         $category = Category::where('id', $category_id)
             ->where('user_id', Auth::id())
@@ -39,7 +41,9 @@ class ToDoController extends Controller
             ->leftJoin('todo_category', 'todo_list.id', '=', 'todo_category.todo_id')
             ->where('todo_category.category_id', $category->id)
             ->where('todo_list.status', 1)
-            ->get();
+            ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
+                return $query->where('todo_list.task_priority', $priority);
+            })->get();
 
         return response()->json([
             'todo' => $todo,
@@ -259,12 +263,14 @@ class ToDoController extends Controller
         return response()->json(['message' => 'Step deleted successfully']);
     }
 
-    public function favorite()
+    public function favorite($priority = null)
     {
         $list = TodoList::where('user_id', Auth::id())
             ->where('favorite', true)
             ->where('status', 1)
-            ->get();
+            ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
+                return $query->where('task_priority', $priority);
+            })->get();
 
         return response()->json([
             'favorite_list' => $list
@@ -299,13 +305,15 @@ class ToDoController extends Controller
         ]);
     }
 
-    public function taskByDate()
+    public function taskByDate($priority = null)
     {
         $tasksByDeadline = TodoList::where('user_id', Auth::id())
             ->where('status', 1)
             ->whereNotNull('task_deadline')
             ->orderBy('task_deadline')
-            ->get()
+            ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
+                return $query->where('task_priority', $priority);
+            })->get()
             ->groupBy('task_deadline');
 
         return response()->json([
@@ -313,7 +321,7 @@ class ToDoController extends Controller
         ]);
     }
 
-    public function weeklyTasks()
+    public function weeklyTasks($priority = null)
     {
         $now = Carbon::now();
 
@@ -322,7 +330,9 @@ class ToDoController extends Controller
             ->whereNotNull('task_deadline')
             ->whereBetween('task_deadline', [$now->startOfWeek()->format('Y-m-d'), $now->endOfWeek()->format('Y-m-d')])
             ->orderBy('task_deadline')
-            ->get()
+            ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
+                return $query->where('task_priority', $priority);
+            })->get()
             ->groupBy('task_deadline');
 
         return response()->json([
@@ -330,13 +340,15 @@ class ToDoController extends Controller
         ]);
     }
 
-    public function todayTasks()
+    public function todayTasks($priority = null)
     {
         $today_tasks = TodoList::where('user_id', Auth::id())
             ->where('status', 1)
             ->whereNotNull('task_deadline')
             ->whereDate('task_deadline', now()->format('Y-m-d'))
-            ->orderBy('task_priority')
+            ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
+                return $query->where('task_priority', $priority);
+            })->orderBy('task_priority')
             ->orderBy('created_date')
             ->get();
 
@@ -344,4 +356,5 @@ class ToDoController extends Controller
             'today_tasks' => $today_tasks
         ]);
     }
+
 }

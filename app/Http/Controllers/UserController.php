@@ -17,15 +17,16 @@ class UserController extends Controller
             'email' => 'required|string|unique:users,email',
             'password' => 'required|string|confirmed',
             'language' => 'integer',
-            'theme' => 'integer'
+            'theme' => 'integer',
+            'photo' => 'image|mimes:jpeg,png,jpg',
         ]);
 
         $fileName = 'user.png';
-//        if ($request->hasFile('photo')) {
-//            $fileName = time() . '.' . $request->file('photo')->getClientOriginalExtension();
-//            $request->file('photo')->storeAs('images', $fileName, 'public');
-//            return $fileName;
-//        }
+        if ($request->hasFile('photo')) {
+            $fileName = time() . '.' . $request->file('photo')->getClientOriginalExtension();
+            $request->file('photo')->storeAs('images', $fileName, 'public');
+        }
+
 
         $user = User::create([
             'name' => $request->input('name'),
