@@ -7,11 +7,22 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ToDoController;
 
 
+//Public routes
+Route::group([''], function () {
+    Route::get('/csrf-token', function () {
+        return response()->json([
+            'csrf_token' => csrf_token()
+        ]);
+    });
+    Route::post('/register', [UserController::class, 'register']);
+    Route::post('/login', [UserController::class, 'login']);
+    Route::post('/logout', [UserController::class, 'logout']);
+});
+
 
 //Protected routes
 Route::group(['middleware' => 'auth:sanctum'], function () {
     //User
-    Route::post('/logout', [UserController::class, 'logout']);
     Route::put('/user', [UserController::class, 'update']);
     Route::delete('/user', [UserController::class, 'destroy']);
     Route::get('/user', [UserController::class, 'show']);
@@ -38,10 +49,4 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::delete('/todo/{todo}', [ToDoController::class, 'destroy']);
     Route::delete('/todo-step/{step}', [ToDoController::class, 'destroyStep']);
 
-});
-
-//Public routes
-Route::group([''], function () {
-    Route::post('/register', [UserController::class, 'register']);
-    Route::post('/login', [UserController::class, 'login']);
 });
