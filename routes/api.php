@@ -9,11 +9,6 @@ use App\Http\Controllers\ToDoController;
 
 //Public routes
 Route::group([''], function () {
-    Route::get('/csrf-token', function () {
-        return response()->json([
-            'csrf_token' => csrf_token()
-        ]);
-    });
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/logout', [UserController::class, 'logout']);

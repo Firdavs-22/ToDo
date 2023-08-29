@@ -41,7 +41,6 @@ class UserController extends Controller
         $token = $user->createToken('myapptoken')->plainTextToken;
 
         $response = [
-
             'token' => $token
         ];
 
