@@ -26,16 +26,17 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::resource('categories', CategoryController::class);
 
     // ToDoList
-
+    Route::get('/todos/{priority?}', [ToDoController::class, 'index']);
     Route::get('/date/{priority?}', [ToDoController::class, 'taskByDate']);
     Route::get('/weekly/{priority?}', [ToDoController::class, 'weeklyTasks']);
     Route::get('/today/{priority?}', [ToDoController::class, 'todayTasks']);
     Route::get('/favorite/{priority?}', [ToDoController::class, 'favorite']);
     Route::get('/todo-category/{category}/{priority?}', [ToDoController::class, 'showCategory']);
-    Route::get('/complete/{todo}', [ToDoController::class, 'complete']);
-    Route::get('/step-complete/{step}', [ToDoController::class, 'stepComplete']);
     Route::get('/todo/{todo}', [ToDoController::class, 'show']);
 
+    Route::post('/complete/{todo}', [ToDoController::class, 'complete']);
+    Route::post('/favorite/{todo}', [ToDoController::class, 'taskFavorite']);
+    Route::post('/step-complete/{step}', [ToDoController::class, 'stepComplete']);
     Route::post('/todo', [ToDoController::class, 'store']);
     Route::post('/todo/{todo}', [ToDoController::class, 'storeStep']);
     Route::put('/todo/{todo}', [ToDoController::class, 'update']);

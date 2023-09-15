@@ -19,7 +19,11 @@ class ToDoController extends Controller
             ->where('status', 1)
             ->when($priority >= 1 && $priority <= 3, function ($query) use ($priority) {
                 return $query->where('task_priority', $priority);
-            })->get();
+            })
+            ->orderBy('task_priority','desc')
+            ->with('todoCategories')
+            ->get();
+
 
         return response()->json([
             'todo_list' => $list
@@ -140,16 +144,16 @@ class ToDoController extends Controller
             'description' => 'string',
             'priority' => 'integer',
             'deadline' => 'date',
-            'completed' => 'required|boolean',
-            'favorite' => 'required|boolean'
+            'completed' => 'boolean',
+            'favorite' => 'boolean'
         ]);
 
         $todo->task_name = $validatedData['name'];
-        $todo->task_description = $validatedData['description'] ?? null;
-        $todo->task_priority = $validatedData['priority'] ?? 2;
-        $todo->task_deadline = $validatedData['deadline'] ?? null;
-        $todo->completed = $validatedData['completed'] ?? false;
-        $todo->favorite = $validatedData['favorite'] ?? false;
+        $todo->task_description = $validatedData['description'] ?? $todo->task_description;
+        $todo->task_priority = $validatedData['priority'] ?? $todo->task_priority;
+        $todo->task_deadline = $validatedData['deadline'] ?? $todo->task_deadline;
+        $todo->completed = $validatedData['completed'] ?? $todo->completed;
+        $todo->favorite = $validatedData['favorite'] ?? $todo->favorite;
         $todo->save();
 
         return response()->json([
@@ -277,17 +281,41 @@ class ToDoController extends Controller
         ]);
     }
 
-    public function complete(TodoList $todo)
+    public function complete(Request $request, TodoList $todo)
     {
+        $validatedData = $request->validate([
+            'completed' => 'required|bool'
+        ]);
+
+
         if ($todo->user_id != Auth::id() || $todo->status == 0) {
             return response()->json(['error' => 'ToDo not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $todo->completed = true;
+        $todo->completed = $validatedData['completed'];
         $todo->save();
 
         return response()->json([
-            'message' => 'ToDo completed successfully'
+            'message' => 'ToDo ' . ($todo->completed ? 'completed' : 'not completed') . ' successfully'
+        ]);
+    }
+
+    public function taskFavorite(Request $request, TodoList $todo)
+    {
+        $validatedData = $request->validate([
+            'favorite' => 'required|bool'
+        ]);
+
+
+        if ($todo->user_id != Auth::id() || $todo->status == 0) {
+            return response()->json(['error' => 'ToDo not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $todo->favorite = $validatedData['favorite'];
+        $todo->save();
+
+        return response()->json([
+            'message' => 'ToDo ' . ($todo->favorite ? 'favorite' : 'not favorite') . ' successfully'
         ]);
     }
 

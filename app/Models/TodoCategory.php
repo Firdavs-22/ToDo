@@ -15,6 +15,7 @@ class TodoCategory extends Model
         'status',
     ];
 
+
     protected $table = 'todo_category';
 
     public $timestamps = false;

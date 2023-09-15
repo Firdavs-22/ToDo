@@ -18,8 +18,14 @@ class TodoList extends Model
         'task_deadline',
         'completed',
         'favorite',
-        'status',
+        'status'
     ];
+
+    public function todoCategories()
+    {
+        return $this->hasMany(TodoCategory::class,'todo_id');
+    }
+
     protected $table = 'todo_list';
     public $timestamps = false;
 }
